@@ -16,6 +16,7 @@ import './ui';
 // styles) consolidated in, so this one import pulls in the whole app's CSS.
 import './index.css';
 import App from './App.jsx';
+import MyVoiceApp from './pages/MyVoiceApp.jsx';
 import ErrorBoundary from './components/ErrorBoundary';
 import RemoteAuthGate from './components/RemoteAuthGate';
 import DesktopCaptureShortcutBridge from './components/DesktopCaptureShortcutBridge';
@@ -87,6 +88,7 @@ export async function bootstrapApp() {
     void installDesktopPersistenceExitHandshake();
   }
   const isDesktopShell = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+  const isMyVoiceMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('myvoice') === '1';
 
   // The widget window is `transparent: true` (tauri.conf.json), but it loads
   // the SAME index.html as the main window — so `body { background-color:
@@ -124,13 +126,13 @@ export async function bootstrapApp() {
             ) : (
               <LongformPersistenceGate>
                 <>
-                  <App />
-                  {isDesktopShell && <DesktopCaptureShortcutBridge />}
+                  {isMyVoiceMode ? <MyVoiceApp /> : <App />}
+                  {isDesktopShell && !isMyVoiceMode && <DesktopCaptureShortcutBridge />}
                   {/* The desktop shell owns a separate global-hotkey widget
                     window. Browser/Docker builds do not, so mount the same
                     capture engine here to provide the documented focused-page
                     Ctrl+Shift+Space fallback. */}
-                  {!isDesktopShell && (
+                  {!isDesktopShell && !isMyVoiceMode && (
                     <div className="capture-pill-host">
                       <CaptureWidget />
                     </div>
